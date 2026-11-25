@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>체크리스트 웹앱</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-light: #eef2ff;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #10b981;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+      min-height: 100vh;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 580px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 22px;
+    }
+
+    /* 통계 대시보드 */
+    .stats-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      text-align: center;
+    }
+
+    .stat-box {
+      background: var(--bg);
+      padding: 12px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-top: 2px;
+      color: var(--text-main);
+    }
+
+    .progress-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background-color: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 999px;
+    }
+
+    /* 할 일 입력 폼 */
+    .input-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-form input {
+      flex: 1;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-form input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 10px 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+
+    .btn-danger-outline:hover {
+      background: #fef2f2;
+    }
+
+    /* 필터 및 컨트롤 바 */
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 6px;
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .filter-btn.active {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary-light);
+    }
+
+    /* 할 일 목록 */
+    .todo-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      gap: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .todo-item:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    }
+
+    .todo-item.completed {
+      background: #fbfcfe;
+    }
+
+    /* 체크박스 커스텀 */
+    .todo-checkbox {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--primary);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .todo-text {
+      flex: 1;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      word-break: break-all;
+      line-height: 1.4;
+      transition: color 0.2s;
+    }
+
+    .todo-item.completed .todo-text {
+      color: #94a3b8;
+      text-decoration: line-through;
+    }
+
+    .todo-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+
+    .icon-btn:hover {
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .icon-btn.delete:hover {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    /* 수정 모드 */
+    .edit-input {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 0.95rem;
+      border: 1.5px solid var(--primary);
+      border-radius: 6px;
+      outline: none;
+    }
+
+    /* 비어있는 상태(Empty State) */
+    .empty-state {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--text-muted);
+    }
+
+    .empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      opacity: 0.8;
+    }
+
+    .empty-state h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .empty-state p {
+      font-size: 0.85rem;
+    }
+    /* 커스텀 모달 다이얼로그 (iframe/브라우저 confirm 차단 대응) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 360px;
+      padding: 24px;
+      text-align: center;
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
+    }
+
+    .modal-overlay.active .modal-box {
+      transform: scale(1);
+    }
+
+    .modal-icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 20px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1>체크리스트</h1>
+      <p id="today-date"></p>
+    </header>
+
+    <!-- 통계 카드 -->
+    <div class="card stats-card">
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">전체 할 일</div>
+          <div class="stat-value" id="total-count">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">남은 일</div>
+          <div class="stat-value" id="remaining-count" style="color: var(--primary);">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">완료한 일</div>
+          <div class="stat-value" id="completed-count" style="color: var(--success);">0</div>
+        </div>
+      </div>
+      <div class="progress-section">
+        <div class="progress-info">
+          <span>진행률</span>
+          <span id="percent-label">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 할 일 입력 폼 -->
+    <div class="card">
+      <form class="input-form" id="todo-form">
+        <input 
+          type="text" 
+          id="todo-input" 
+          placeholder="해야 할 일을 입력하고 추가를 누르세요..." 
+          autocomplete="off" 
+          required
+        />
+        <button type="submit" class="btn btn-primary">추가</button>
+      </form>
+    </div>
+
+    <!-- 할 일 목록 카드 -->
+    <div class="card">
+      <div class="controls-bar">
+        <div class="filters">
+          <button class="filter-btn active" data-filter="all">전체 보기</button>
+          <button class="filter-btn" data-filter="active">남은 일</button>
+          <button class="filter-btn" data-filter="completed">완료한 일</button>
+        </div>
+        <button class="btn btn-danger-outline" id="clear-all-btn">전체 삭제</button>
+      </div>
+
+      <ul class="todo-list" id="todo-list"></ul>
+
+      <div class="empty-state" id="empty-state" style="display: none;">
+        <div class="empty-icon">📝</div>
+        <h3 id="empty-title">등록된 할 일이 없습니다</h3>
+        <p id="empty-desc">새로운 할 일을 추가하여 오늘 하루를 계획해 보세요!</p>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- 확인 모달 (브라우저 confirm 차단 대응) -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-box">
+      <div class="modal-icon">⚠️</div>
+      <div class="modal-title">전체 할 일 삭제</div>
+      <div class="modal-desc">정말 모든 할 일을 삭제하시겠습니까?<br>삭제된 내용은 복구할 수 없습니다.</div>
+      <div class="modal-actions">
+        <button class="btn" id="modal-cancel-btn" style="background: var(--bg); border: 1px solid var(--border); color: var(--text-main);">취소</button>
+        <button class="btn" id="modal-confirm-btn" style="background: var(--danger); color: #fff;">모두 삭제</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <script>
+    // State
+    let todos = [];
+    let currentFilter = 'all'; // 'all' | 'active' | 'completed'
+
+    // DOM Elements
+    const todoForm = document.getElementById('todo-form');
+    const todoInput = document.getElementById('todo-input');
+    const todoList = document.getElementById('todo-list');
+    const emptyState = document.getElementById('empty-state');
+    const emptyTitle = document.getElementById('empty-title');
+    const emptyDesc = document.getElementById('empty-desc');
+    const totalCountEl = document.getElementById('total-count');
+    const remainingCountEl = document.getElementById('remaining-count');
+    const completedCountEl = document.getElementById('completed-count');
+    const percentLabelEl = document.getElementById('percent-label');
+    const progressBarEl = document.getElementById('progress-bar');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const clearAllBtn = document.getElementById('clear-all-btn');
+    const todayDateEl = document.getElementById('today-date');
+
+    const confirmModal = document.getElementById('confirm-modal');
+    const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+    const modalCancelBtn = document.getElementById('modal-cancel-btn');
+    // 오늘 날짜 표시
+    function initDate() {
+      const today = new Date();
+      const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+      todayDateEl.textContent = today.toLocaleDateString('ko-KR', options);
+    }
+
+    // 안전한 로컬 스토리지 헬퍼 (iframe, 시크릿 모드, 보안 정책 환경 대응)
+    function getStoredData(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        console.warn('localStorage 접근 제한:', e);
+        return null;
+      }
+    }
+
+    function setStoredData(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (e) {
+        console.warn('localStorage 저장 제한:', e);
+      }
+    }
+
+    // 로컬 스토리지 불러오기
+    function loadTodos() {
+      const stored = getStoredData('todos');
+      if (stored) {
+        try {
+          todos = JSON.parse(stored) || [];
+        } catch (e) {
+          todos = [];
+        }
+      }
+    }
+
+    // 로컬 스토리지 저장
+    function saveTodos() {
+      setStoredData('todos', JSON.stringify(todos));
+    }
+    // 통계 업데이트
+    function updateStats() {
+      const total = todos.length;
+      const completed = todos.filter(t => t.completed).length;
+      const remaining = total - completed;
+      const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+      totalCountEl.textContent = total;
+      remainingCountEl.textContent = remaining;
+      completedCountEl.textContent = completed;
+      percentLabelEl.textContent = `${percent}%`;
+      progressBarEl.style.width = `${percent}%`;
+    }
+
+    // 렌더링
+    function render() {
+      todoList.innerHTML = '';
+
+      // 필터 적용
+      const filtered = todos.filter(todo => {
+        if (currentFilter === 'active') return !todo.completed;
+        if (currentFilter === 'completed') return todo.completed;
+        return true;
+      });
+
+      // Empty State 처리
+      if (filtered.length === 0) {
+        emptyState.style.display = 'block';
+        if (todos.length === 0) {
+          emptyTitle.textContent = '등록된 할 일이 없습니다';
+          emptyDesc.textContent = '새로운 할 일을 추가하여 오늘 하루를 계획해 보세요!';
+        } else if (currentFilter === 'active') {
+          emptyTitle.textContent = '남은 할 일이 없습니다';
+          emptyDesc.textContent = '모든 할 일을 완료했습니다. 멋진 하루네요!';
+        } else if (currentFilter === 'completed') {
+          emptyTitle.textContent = '완료한 할 일이 없습니다';
+          emptyDesc.textContent = '체크박스를 클릭해 완료한 일을 체크해 보세요.';
+        }
+      } else {
+        emptyState.style.display = 'none';
+      }
+
+      // 목록 생성
+      filtered.forEach(todo => {
+        const li = document.createElement('li');
+        li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+        li.dataset.id = todo.id;
+
+        if (todo.isEditing) {
+          // 수정 모드 UI
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'edit-input';
+          input.value = todo.text;
+
+          const saveBtn = document.createElement('button');
+          saveBtn.className = 'btn btn-primary';
+          saveBtn.style.padding = '6px 12px';
+          saveBtn.style.fontSize = '0.8rem';
+          saveBtn.textContent = '저장';
+          saveBtn.addEventListener('click', () => saveEdit(todo.id, input.value));
+
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'icon-btn';
+          cancelBtn.textContent = '취소';
+          cancelBtn.addEventListener('click', () => cancelEdit(todo.id));
+
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') saveEdit(todo.id, input.value);
+            if (e.key === 'Escape') cancelEdit(todo.id);
+          });
+
+          li.appendChild(input);
+          li.appendChild(saveBtn);
+          li.appendChild(cancelBtn);
+
+          // 자동 포커스
+          setTimeout(() => input.focus(), 0);
+        } else {
+          // 기본 조회 모드 UI
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'todo-checkbox';
+          checkbox.checked = todo.completed;
+          checkbox.addEventListener('change', () => toggleTodo(todo.id));
+
+          const span = document.createElement('span');
+          span.className = 'todo-text';
+          span.textContent = todo.text;
+
+          const actions = document.createElement('div');
+          actions.className = 'todo-actions';
+
+          const editBtn = document.createElement('button');
+          editBtn.className = 'icon-btn';
+          editBtn.textContent = '수정';
+          editBtn.addEventListener('click', () => startEdit(todo.id));
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'icon-btn delete';
+          deleteBtn.textContent = '삭제';
+          deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
+
+          actions.appendChild(editBtn);
+          actions.appendChild(deleteBtn);
+
+          li.appendChild(checkbox);
+          li.appendChild(span);
+          li.appendChild(actions);
+        }
+
+        todoList.appendChild(li);
+      });
+
+      updateStats();
+    }
+
+    // 할 일 추가
+    function addTodo(text) {
+      const trimmed = text ? text.trim() : '';
+      if (!trimmed) {
+        alert('할 일을 입력해 주세요!');
+        todoInput.focus();
+        return;
+      }
+
+      const newTodo = {
+        id: Date.now().toString() + Math.random().toString(36).substring(2, 7),
+        text: trimmed,
+        completed: false,
+        isEditing: false
+      };
+
+      todos.unshift(newTodo);
+      saveTodos();
+
+      // '완료한 일' 필터가 켜져 있으면 추가된 항목이 바로 보이도록 '전체 보기'로 전환
+      if (currentFilter === 'completed') {
+        currentFilter = 'all';
+        filterButtons.forEach(b => {
+          b.classList.toggle('active', b.dataset.filter === 'all');
+        });
+      }
+
+      render();
+      todoInput.value = '';
+      todoInput.focus();
+    }
+
+    // 완료 토글
+    function toggleTodo(id) {
+      todos = todos.map(todo => {
+        if (todo.id === id) {
+          return { ...todo, completed: !todo.completed };
+        }
+        return todo;
+      });
+      saveTodos();
+      render();
+    }
+
+    // 수정 모드 진입
+    function startEdit(id) {
+      todos = todos.map(todo => ({
+        ...todo,
+        isEditing: todo.id === id
+      }));
+      render();
+    }
+
+    // 수정 저장
+    function saveEdit(id, newText) {
+      const trimmed = newText.trim();
+      if (!trimmed) {
+        alert('할 일 내용을 입력해 주세요.');
+        return;
+      }
+      todos = todos.map(todo => {
+        if (todo.id === id) {
+          return { ...todo, text: trimmed, isEditing: false };
+        }
+        return todo;
+      });
+      saveTodos();
+      render();
+    }
+
+    // 수정 취소
+    function cancelEdit(id) {
+      todos = todos.map(todo => {
+        if (todo.id === id) {
+          return { ...todo, isEditing: false };
+        }
+        return todo;
+      });
+      render();
+    }
+
+    // 단일 삭제
+    function deleteTodo(id) {
+      todos = todos.filter(todo => todo.id !== id);
+      saveTodos();
+      render();
+    }
+
+    // 전체 삭제 (확인 창 포함)
+    // 커스텀 확인 다이얼로그 열기/닫기
+    function openConfirmModal() {
+      confirmModal.classList.add('active');
+    }
+
+    function closeConfirmModal() {
+      confirmModal.classList.remove('active');
+    }
+
+    // 전체 삭제
+    function clearAllTodos() {
+      if (todos.length === 0) {
+        alert('삭제할 할 일이 없습니다.');
+        return;
+      }
+      openConfirmModal();
+    }
+
+    // 이벤트 리스너 등록
+    todoForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      addTodo(todoInput.value);
+    });
+
+    // 추가 버튼 직접 클릭 대응
+    const addBtn = document.querySelector('#todo-form button[type="submit"]');
+    if (addBtn) {
+      addBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        addTodo(todoInput.value);
+      });
+    }
+
+    clearAllBtn.addEventListener('click', clearAllTodos);
+
+    modalCancelBtn.addEventListener('click', closeConfirmModal);
+    confirmModal.addEventListener('click', (e) => {
+      if (e.target === confirmModal) closeConfirmModal();
+    });
+
+    modalConfirmBtn.addEventListener('click', () => {
+      todos = [];
+      saveTodos();
+      render();
+      closeConfirmModal();
+    });
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    // 초기화
+    initDate();
+    loadTodos();
+    render();
+  </script>
+</body>
+</html>
